@@ -1,0 +1,35 @@
+
+body {
+            margin: 0;
+            background-color: #f03;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+}
+.eye-svg {
+            width: 150px;
+            height: 150px;
+            cursor: pointer;
+}
+svg path {
+            fill: black;
+}
+
+.cls-2 {
+    fill: antiquewhite;
+}
+
+.cls-3 {
+    fill: antiquewhite;
+    opacity: 0.5;
+    display: none;
+}
+
+.eye-svg .cls-1, /* Eye outline */
+.eye-svg #pupil,  /* Pupil */
+.eye-svg .cls-2,  /* Iris */
+.eye-svg .cls-3 { /* Light reflection */
+    transition: transform 0.4s ease; /* Smooth transition for transform */
+    transform-origin: center; /* Ensure the animation happens from the center */
+}
