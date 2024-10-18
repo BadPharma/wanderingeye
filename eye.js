@@ -18,7 +18,7 @@ function wink() {
     if (!isWinking) {
         isWinking = true;
         // Apply the wink by scaling the Y-axis
-        applyWink(0.1); // Shrink the eye on the Y-axis
+        applyWink(0.03); // Shrink the eye on the Y-axis
 
         setTimeout(() => {
             applyWink(1); // Reset the eye back to its original scale
