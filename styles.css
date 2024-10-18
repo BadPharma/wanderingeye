@@ -11,6 +11,7 @@ body {
             width: 150px;
             height: 150px;
             cursor: pointer;
+            touch-action: none; /* Prevents default scrolling behavior */
 }
 svg path {
             fill: black;

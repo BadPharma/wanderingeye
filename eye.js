@@ -18,10 +18,9 @@ function wink() {
     if (!isWinking) {
         isWinking = true;
         // Apply the wink by scaling the Y-axis
-        applyWink(0.01); // Shrink the eye on the Y-axis
+        applyWink(0.1); // Shrink the eye on the Y-axis
 
         setTimeout(() => {
-            // After the wink duration, reset to normal size
             applyWink(1); // Reset the eye back to its original scale
             isWinking = false;
         }, 400); // Wink duration
@@ -67,16 +66,34 @@ document.addEventListener('mousemove', (event) => {
 let isDragging = false;
 
 eyeSvg.addEventListener('touchstart', (event) => {
-    event.preventDefault(); // Prevent any default behavior like scrolling
     const touch = event.touches[0]; // Get the first touch point
-    followPointer(touch.clientX, touch.clientY);
-    isDragging = true;
+    const touchX = touch.clientX;
+    const touchY = touch.clientY;
+
+    // Determine if the user is clicking on the eye
+    const { left, top, width } = eyeSvg.getBoundingClientRect();
+    const centerX = left + width / 2;
+    const centerY = top + (eyeSvg.getBoundingClientRect().height / 2);
+
+    const deltaX = touchX - centerX;
+    const deltaY = touchY - centerY;
+    const distance = Math.sqrt(deltaX ** 2 + deltaY ** 2);
+
+    // If within the eye's bounds, initiate dragging
+    if (distance <= width / 2) {
+        isDragging = true; // Set dragging flag
+        followPointer(touchX, touchY); // Move the eye with the touch
+        event.preventDefault(); // Prevent default behavior (scrolling) only if dragging starts
+    } else {
+        wink(); // If not, perform a wink
+    }
 });
 
 eyeSvg.addEventListener('touchmove', (event) => {
     if (isDragging) {
         const touch = event.touches[0]; // Get the first touch point
         followPointer(touch.clientX, touch.clientY); // Move the eye with the touch
+        event.preventDefault(); // Prevent default behavior (scrolling) during drag
     }
 });
 
@@ -85,19 +102,7 @@ eyeSvg.addEventListener('touchend', () => {
 });
 
 // Click and Touch Event for Winking
-eyeSvg.addEventListener('click', (event) => {
-    wink(); // Trigger wink on click
-});
-
-pupil.addEventListener('click', (event) => {
-    wink(); // Trigger wink on click
-});
-
-iris.addEventListener('click', (event) => {
-    wink(); // Trigger wink on click
-});
-
-
+eyeSvg.addEventListener('click', wink);
 eyeSvg.addEventListener('touchstart', (event) => {
     wink(); // Trigger wink on touch
 });
