@@ -36,7 +36,7 @@ function wink(eye) {
         isWinking = true;
         canMove = false;
 
-        applyWink(eye.pupil, eye.iris, eye.light, eye.path, 0.0, 0.0, 0.0, 0.5);
+        applyWink(eye.pupil, eye.iris, eye.light, eye.path, 0.0, 0.0, 0.0, 0.05);
 
         setTimeout(() => {
             applyWink(eye.pupil, eye.iris, eye.light, eye.path, 1, 1, 1, 1);
