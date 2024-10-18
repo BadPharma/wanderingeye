@@ -4,6 +4,7 @@ const iris = document.querySelector('.cls-2'); // White circle (iris)
 const light = document.querySelector('.cls-3'); // Small light reflection
 const eyePath = document.querySelector('.cls-1'); // The main eye outline
 let isWinking = false;
+let isTouching = false; // New flag to manage touch events
 
 // Function to apply the wink to all parts of the eye
 function applyWink(scaleY) {
@@ -29,6 +30,8 @@ function wink() {
 
 // Function to follow the pointer
 function followPointer(clientX, clientY) {
+    if (isTouching) return; // Prevent movement while touching
+
     const { left, top, width, height } = eyeSvg.getBoundingClientRect();
     
     // Eye's center point
@@ -40,7 +43,7 @@ function followPointer(clientX, clientY) {
     const deltaY = clientY - centerY;
 
     // Calculate movement limits for the pupil and iris
-    const maxMovement = width / 55; // Updated movement range
+    const maxMovement = width / 45; // Updated movement range
     const distance = Math.sqrt(deltaX ** 2 + deltaY ** 2);
     
     // Clamp the pupil and iris movement within the eye boundaries
@@ -62,47 +65,17 @@ document.addEventListener('mousemove', (event) => {
     followPointer(event.clientX, event.clientY);
 });
 
-// Dragging support
-let isDragging = false;
-
-eyeSvg.addEventListener('touchstart', (event) => {
-    const touch = event.touches[0]; // Get the first touch point
-    const touchX = touch.clientX;
-    const touchY = touch.clientY;
-
-    // Determine if the user is clicking on the eye
-    const { left, top, width } = eyeSvg.getBoundingClientRect();
-    const centerX = left + width / 2;
-    const centerY = top + (eyeSvg.getBoundingClientRect().height / 2);
-
-    const deltaX = touchX - centerX;
-    const deltaY = touchY - centerY;
-    const distance = Math.sqrt(deltaX ** 2 + deltaY ** 2);
-
-    // If within the eye's bounds, initiate dragging
-    if (distance <= width / 2) {
-        isDragging = true; // Set dragging flag
-        followPointer(touchX, touchY); // Move the eye with the touch
-        event.preventDefault(); // Prevent default behavior (scrolling) only if dragging starts
-    } else {
-        wink(); // If not, perform a wink
-    }
-});
-
-eyeSvg.addEventListener('touchmove', (event) => {
-    if (isDragging) {
-        const touch = event.touches[0]; // Get the first touch point
-        followPointer(touch.clientX, touch.clientY); // Move the eye with the touch
-        event.preventDefault(); // Prevent default behavior (scrolling) during drag
-    }
-});
-
-eyeSvg.addEventListener('touchend', () => {
-    isDragging = false; // Reset dragging flag
-});
-
 // Click and Touch Event for Winking
-eyeSvg.addEventListener('click', wink);
+eyeSvg.addEventListener('click', () => {
+    isTouching = false; // Reset the touch flag on click
+    wink();
+});
 eyeSvg.addEventListener('touchstart', (event) => {
+    isTouching = true; // Set the touch flag
     wink(); // Trigger wink on touch
+});
+
+// Reset the touch flag when touch ends
+eyeSvg.addEventListener('touchend', () => {
+    isTouching = false; // Reset the touch flag on touch end
 });
