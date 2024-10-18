@@ -67,7 +67,7 @@ function followPointer(event) {
         const deltaX = event.clientX - centerX;
         const deltaY = event.clientY - centerY;
 
-        const maxMovement = width / 55;
+        const maxMovement = width / 35;
         const distance = Math.sqrt(deltaX ** 2 + deltaY ** 2);
 
         const clampedX = (distance > maxMovement) ? (deltaX / distance) * maxMovement : deltaX;
