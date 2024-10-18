@@ -1,111 +1,84 @@
-const pupil = document.getElementById('pupil');
-const eyeSvg = document.getElementById('eye-svg');
-const iris = document.querySelector('.cls-2'); // White circle (iris)
-const light = document.querySelector('.cls-3'); // Small light reflection
-const eyePath = document.querySelector('.cls-1'); // The main eye outline (cls-1)
-let isWinking = false;
-let isTouching = false; // To manage touch events
-let canMove = true; // Flag to control movement during wink
+const eyes = [
+    { svg: document.getElementById('eye-svg-1'), pupil: document.getElementById('pupil-1'), iris: document.querySelector('#eye-svg-1 .cls-2'), light: document.querySelector('#eye-svg-1 .cls-3'), path: document.querySelector('#eye-svg-1 .cls-1') },
+    { svg: document.getElementById('eye-svg-2'), pupil: document.getElementById('pupil-2'), iris: document.querySelector('#eye-svg-2 .cls-2'), light: document.querySelector('#eye-svg-2 .cls-3'), path: document.querySelector('#eye-svg-2 .cls-1') },
+    { svg: document.getElementById('eye-svg-3'), pupil: document.getElementById('pupil-3'), iris: document.querySelector('#eye-svg-3 .cls-2'), light: document.querySelector('#eye-svg-3 .cls-3'), path: document.querySelector('#eye-svg-3 .cls-1') }
+];
 
-// Helper function to get the current transformation
+let isWinking = false;
+let canMove = true;
+
 function getTransform(element) {
-    return element.getAttribute('transform') || ''; // Return the current transform or an empty string if none exists
+    return element.getAttribute('transform') || '';
 }
 
-// Helper function to combine transformations for a specific element
 function combineTransforms(originalTransform, scaleX, scaleY) {
     if (originalTransform.includes('scale')) {
-        // If a scale already exists, replace it
         return originalTransform.replace(/scale\(.*?\)/, `scale(${scaleX}, ${scaleY})`);
     } else {
-        // Otherwise, add the new scale transformation
         return `${originalTransform} scale(${scaleX}, ${scaleY})`;
     }
 }
 
-// Function to apply the wink with individual scale values
-function applyWink(pupilScaleY, irisScaleY, lightScaleY, eyePathScaleY) {
+function applyWink(pupil, iris, light, path, pupilScaleY, irisScaleY, lightScaleY, pathScaleY) {
     const pupilTransform = getTransform(pupil);
     const irisTransform = getTransform(iris);
     const lightTransform = getTransform(light);
-    const eyePathTransform = getTransform(eyePath);
+    const pathTransform = getTransform(path);
 
-    // Apply the individual wink scale for each element
     pupil.setAttribute('transform', combineTransforms(pupilTransform, 1, pupilScaleY));
     iris.setAttribute('transform', combineTransforms(irisTransform, 1, irisScaleY));
     light.setAttribute('transform', combineTransforms(lightTransform, 1, lightScaleY));
-    eyePath.setAttribute('transform', combineTransforms(eyePathTransform, 1, eyePathScaleY));
+    path.setAttribute('transform', combineTransforms(pathTransform, 1, pathScaleY));
 }
 
-// Function to ensure consistent wink across all elements
-function wink() {
+function wink(eye) {
     if (!isWinking) {
         isWinking = true;
-        canMove = false; // Disable movement during wink
+        canMove = false;
 
-        // Apply the wink with individual scale values for each element
-        applyWink(0.0, 0.0, 0.0, 0.5); // Adjust the scaleY values as needed
+        applyWink(eye.pupil, eye.iris, eye.light, eye.path, 0.0, 0.0, 0.0, 0.5);
 
         setTimeout(() => {
-            // Reset each element back to its original scale
-            applyWink(1, 1, 1, 1);
+            applyWink(eye.pupil, eye.iris, eye.light, eye.path, 1, 1, 1, 1);
             isWinking = false;
-            canMove = true; // Re-enable movement after wink
-        }, 400); // Wink duration
+            canMove = true;
+        }, 400);
     }
 }
 
-// Attach the wink event to all key elements within the eye
 function attachWinkListeners() {
-    [eyeSvg, pupil, iris, light, eyePath].forEach((element) => {
-        element.addEventListener('click', () => {
-            isTouching = false; // Reset the touch flag on click
-            wink();
-        });
-
-        element.addEventListener('touchstart', (event) => {
-            isTouching = true; // Set the touch flag
-            wink(); // Trigger wink on touch
+    eyes.forEach(eye => {
+        [eye.svg, eye.pupil, eye.iris, eye.light, eye.path].forEach(element => {
+            element.addEventListener('click', () => {
+                wink(eye);
+            });
         });
     });
 }
 
-// Function to follow the pointer
-function followPointer(clientX, clientY) {
-    if (!canMove || isTouching) return; // Prevent movement during wink or touch events
+function followPointer(event) {
+    if (!canMove) return;
 
-    const { left, top, width, height } = eyeSvg.getBoundingClientRect();
-    
-    // Eye's center point
-    const centerX = left + width / 2;
-    const centerY = top + height / 2;
-    
-    // Calculate the mouse position relative to the eye's center
-    const deltaX = clientX - centerX;
-    const deltaY = clientY - centerY;
+    eyes.forEach(eye => {
+        const { left, top, width } = eye.svg.getBoundingClientRect();
+        const centerX = left + width / 2;
+        const centerY = top + width / 2;
 
-    // Calculate movement limits for the pupil and iris
-    const maxMovement = width / 55; // Updated movement range
-    const distance = Math.sqrt(deltaX ** 2 + deltaY ** 2);
-    
-    // Clamp the pupil and iris movement within the eye boundaries
-    const clampedX = (distance > maxMovement) ? (deltaX / distance) * maxMovement : deltaX;
-    const clampedY = (distance > maxMovement) ? (deltaY / distance) * maxMovement : deltaY;
+        const deltaX = event.clientX - centerX;
+        const deltaY = event.clientY - centerY;
 
-    // Move the pupil and iris together
-    pupil.setAttribute('transform', `translate(${clampedX}, ${clampedY})`);
-    iris.setAttribute('transform', `translate(${clampedX}, ${clampedY})`);
+        const maxMovement = width / 55;
+        const distance = Math.sqrt(deltaX ** 2 + deltaY ** 2);
 
-    // Move the light reflection (cls-3) in the opposite direction
-    const oppositeX = -clampedX / 2; // Moving contrary to the pupil (inverted and reduced)
-    const oppositeY = -clampedY / 2; // Adjusted for the contrary movement effect
-    light.setAttribute('transform', `translate(${oppositeX}, ${oppositeY})`);
+        const clampedX = (distance > maxMovement) ? (deltaX / distance) * maxMovement : deltaX;
+        const clampedY = (distance > maxMovement) ? (deltaY / distance) * maxMovement : deltaY;
+
+        eye.pupil.setAttribute('transform', `translate(${clampedX}, ${clampedY})`);
+        eye.iris.setAttribute('transform', `translate(${clampedX}, ${clampedY})`);
+        eye.light.setAttribute('transform', `translate(${-clampedX / 2}, ${-clampedY / 2})`);
+    });
 }
 
-// Mouse and Touch Event Listeners
-document.addEventListener('mousemove', (event) => {
-    followPointer(event.clientX, event.clientY);
-});
+document.addEventListener('mousemove', followPointer);
 
-// Initialize wink listeners for all parts of the eye
 attachWinkListeners();
